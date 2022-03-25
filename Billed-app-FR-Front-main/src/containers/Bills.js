@@ -33,6 +33,16 @@ export default class {
       .bills()
       .list()
       .then(snapshot => {
+        // Sort bills by date (from earliest to latest)
+        // Why exemple bellow is not working ?
+        // snapshot.sort((a,b) => b.date - a.date)
+        snapshot.sort((a, b) => {
+          const dateA = new Date(a.date)
+          const dateB = new Date(b.date)
+          return dateB - dateA
+        });
+
+        // Format date of bills
         const bills = snapshot
           .map(doc => {
             try {
