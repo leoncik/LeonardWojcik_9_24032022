@@ -42,7 +42,13 @@ export default class NewBill {
   }
   handleSubmit = e => {
     e.preventDefault()
-    console.log('e.target.querySelector(`input[data-testid="datepicker"]`).value', e.target.querySelector(`input[data-testid="datepicker"]`).value)
+    console.log('e.target.querySelector(`input[data-testid="datepicker"]`).value', e.target.querySelector(`input[data-testid="datepicker"]`).value);
+    // Prevent user to submit file with other extension than  jpg, jpeg or png
+    const fileExtension = e.target.querySelector(`input[data-testid="file"]`).value.split('.').pop().toLowerCase();
+    if (fileExtension !== 'jpg' && fileExtension !== 'jpeg' && fileExtension !=='png' ) {
+      alert('Format du justificatif non valide. Veuillez choisir un fichier au format jpg, jpeg ou png.');
+      return false;
+    }
     const email = JSON.parse(localStorage.getItem("user")).email
     const bill = {
       email,
@@ -53,7 +59,10 @@ export default class NewBill {
       vat: e.target.querySelector(`input[data-testid="vat"]`).value,
       pct: parseInt(e.target.querySelector(`input[data-testid="pct"]`).value) || 20,
       commentary: e.target.querySelector(`textarea[data-testid="commentary"]`).value,
-      fileUrl: this.fileUrl,
+      // original
+      // fileUrl: this.fileUrl,
+      // changed
+      fileUrl: e.target.querySelector(`input[data-testid="file"]`).value,
       fileName: this.fileName,
       status: 'pending'
     }
