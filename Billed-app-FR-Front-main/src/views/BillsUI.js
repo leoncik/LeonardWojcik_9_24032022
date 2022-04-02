@@ -20,7 +20,18 @@ const row = (bill) => {
   }
 
 const rows = (data) => {
-  return (data && data.length) ? data.map(bill => row(bill)).join("") : ""
+  if (data && data.length) {
+    // sort data by date (from earliest to latest)
+    data.sort((a, b) => {
+      const dateA = new Date(a.date)
+      const dateB = new Date(b.date)
+      return dateB - dateA
+    })
+   // display data on page
+   return data.map(bill => row(bill)).join("")
+  } else {
+    return "";
+  }
 }
 
 export default ({ data: bills, loading, error }) => {
