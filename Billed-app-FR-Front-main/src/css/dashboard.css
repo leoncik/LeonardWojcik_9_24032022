@@ -117,3 +117,7 @@
   cursor: pointer;
 }
 
+.arrow-icon svg,
+.bill-card > * {
+  pointer-events: none;
+}
