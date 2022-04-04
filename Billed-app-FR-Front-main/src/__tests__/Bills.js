@@ -30,7 +30,7 @@ describe("Given I am connected as an employee", () => {
       expect(windowIcon.classList.contains('active-icon')).toBe(true)
 
     })
-    // Original version
+
     test("Then bills should be ordered from earliest to latest", () => {
       document.body.innerHTML = BillsUI({ data: bills })
       const dates = screen.getAllByText(/^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/i).map(a => a.innerHTML)
@@ -38,21 +38,5 @@ describe("Given I am connected as an employee", () => {
       const datesSorted = [...dates].sort(antiChrono)
       expect(dates).toEqual(datesSorted)
     })
-
-    // New version
-    // Needs to pass getBills() method
-    // test("Then bills should be ordered from earliest to latest", () => {
-    //   const bills = new Bills({ document, onNavigate, mockStore, localStorageMock  })
-    //   const billsList = bills.getBills()
-    //   console.log(billsList);
-    //   document.body.innerHTML = BillsUI({ data: billsList })
-    //   const dates = screen.getAllByText(/^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/i).map(a => a.innerHTML)
-    //   const datesSorted = [...dates].sort((a, b) => {
-    //     const dateA = new Date(a)
-    //     const dateB = new Date(b)
-    //     return dateB - dateA
-    //   })
-    //   expect(dates).toEqual(datesSorted)
-    // })
   })
 })
