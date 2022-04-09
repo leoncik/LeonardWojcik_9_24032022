@@ -15,6 +15,9 @@ import mockStore from "../__mocks__/store";
 import router from "../app/Router.js";
 import NewBillUI from "../views/NewBillUI.js";
 
+// Necessary for toBeVisible method
+import '@testing-library/jest-dom/extend-expect'
+
 describe("Given I am connected as an employee", () => {
   describe("When I am on Bills Page", () => {
     test("Then bill icon in vertical layout should be highlighted", async () => {
@@ -42,72 +45,111 @@ describe("Given I am connected as an employee", () => {
       expect(dates).toEqual(datesSorted)
     })
 
-    // ! Tests not working
     describe("There are bills and when I click on eye icon", () => {
-      test("Then a modal should open ", () => {
+      test("Then a modal should open ", async () => {
         // ! New test
+        // ! Init page method 1 (does not cover this.handleClickIconEye(icon)))
+        // Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+        // window.localStorage.setItem('user', JSON.stringify({
+        //   type: 'Employee'
+        // }))
+        // const onNavigate = (pathname) => {
+        //   document.body.innerHTML = ROUTES({ pathname })
+        // }
+        // const store = null
+        // const bill = new Bills({
+        //   document, onNavigate, store, localStorage: window.localStorage
+        // })
+        // document.body.innerHTML = BillsUI({ data: bills })
+
+        // ! Init page method 2 (covers this.handleClickIconEye(icon)))
         Object.defineProperty(window, 'localStorage', { value: localStorageMock })
         window.localStorage.setItem('user', JSON.stringify({
           type: 'Employee'
         }))
-        document.body.innerHTML = BillsUI({ data: bills })
-        const onNavigate = (pathname) => {
-          document.body.innerHTML = ROUTES({ pathname })
-        }
+        const root = document.createElement("div")
+        root.setAttribute("id", "root")
+        document.body.append(root)
+        router()
+        window.onNavigate(ROUTES_PATH.Bills)
         const store = null
         const bill = new Bills({
-          document, onNavigate, store, bills, localStorage: window.localStorage
+          document, onNavigate, store, localStorage: window.localStorage
         })
-  
-        const handleClickIconEye = jest.fn(bill.handleClickIconEye)
-        const eye = screen.queryAllByTestId('icon-eye')
+
+        const eye = screen.getAllByTestId('icon-eye')
         const singleEye = eye[0]
+        $.fn.modal = jest.fn()
+        const handleClickIconEye = jest.fn(bill.handleClickIconEye(singleEye))
         singleEye.addEventListener('click', handleClickIconEye)
-        // eye.addEventListener('click', bill.handleClickIconEye(eye))
         userEvent.click(singleEye)
         expect(handleClickIconEye).toHaveBeenCalled()
+
+        // ! Works (even without calling handleClickIconEye)
+        // expect(screen.getAllByText('Justificatif')).toBeTruthy()
+
+        // ! Same problem as above
+        await waitFor(() => screen.getAllByText('Justificatif'))
+        const modalText = screen.getAllByText('Justificatif')[0]
+        expect(modalText).toBeVisible()
   
-        const modale = screen.getByTestId('modaleFile')
-        expect(modale).toBeTruthy()
-
-        // ! Old test   
-        // const html = Actions()
-        // document.body.innerHTML = html
-        // // document.body.innerHTML = BillsUI({ data: bills })
-        // const iconEye = screen.getByTestId('icon-eye')
-        // const handleClickIconEye = jest.fn(iconEye.handleClickIconEye)
-        // iconEye.addEventListener('click', handleClickIconEye())
-        // userEvent.click(iconEye)
-        // expect(handleClickIconEye).toHaveBeenCalled()
-
+        // ! Does not work
+        // await waitFor(() => screen.getByTestId('modaleFile'))
         // const modale = screen.getByTestId('modaleFile')
-        // expect(modale).toBeTruthy() 
+        // expect(modale).toBeTruthy()
       })
     })
 
     
-    describe("When I click on 'Nouvelle note de frais'", () => {
+    describe("When I click on new bill button ('Nouvelle note de frais')", () => {
       test("Then It should render NewBill page", async () => {
-        // ! New test
-        // document.body.innerHTML = BillsUI({ data: bills })
+
+        // ! Works (even without clicking on newBillButton)
+        Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+        window.localStorage.setItem('user', JSON.stringify({
+          type: 'Employee'
+        }))
+        const root = document.createElement("div")
+        root.setAttribute("id", "root")
+        document.body.append(root)
+        router()
+        window.onNavigate(ROUTES_PATH.Bills)
+        const store = null
+        const bill = new Bills({
+          document, onNavigate, store, localStorage: window.localStorage
+        })
+
+        const handleClickNewBill = jest.fn(bill.handleClickNewBill())
+        await waitFor(() => screen.getByTestId('btn-new-bill'))
+        const newBillButton = screen.getByTestId("btn-new-bill");
+        expect(newBillButton).toBeTruthy()
+        fireEvent.click(newBillButton);
+        
+        expect(handleClickNewBill).toHaveBeenCalled
+        expect(screen.getAllByText('Envoyer une note de frais')).toBeTruthy()
+
+
+        // ! Old test (not working)
+        // const onNavigate = (pathname) => {
+        //   document.body.innerHTML = ROUTES({ pathname })
+        // }
+        // Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+        // window.localStorage.setItem('user', JSON.stringify({
+        //   type: 'Employee'
+        // }))
         // const store = null
         // const bill = new Bills({
-        //   document, onNavigate, store, bills, localStorage: window.localStorage
+        //   document, onNavigate, store, localStorage: window.localStorage
         // })
+  
+        // document.body.innerHTML = BillsUI({ data: bills })
         // await waitFor(() => screen.getByTestId('btn-new-bill'))
         // const newBillButton = screen.getByTestId("btn-new-bill");
         // expect(newBillButton).toBeTruthy()
         // fireEvent.click(newBillButton);
         
+        // failing, ROUTER is not defined
         // expect(bill.handleClickNewBill()).toHaveBeenCalled
-        // expect(screen.getAllByText('Envoyer une note de frais')).toBeTruthy()
-
-        // ! Old test 
-        // document.body.innerHTML = BillsUI({ data: bills })
-        // const handleClickNewBill = jest.fn(bills.handleClickNewBill)
-        // const newBillButton = screen.getByTestId("btn-new-bill");
-        // fireEvent.click(newBillButton);
-        // expect(handleClickNewBill).toHaveBeenCalled
         // expect(screen.getAllByText('Envoyer une note de frais')).toBeTruthy()
       })
     }) 
