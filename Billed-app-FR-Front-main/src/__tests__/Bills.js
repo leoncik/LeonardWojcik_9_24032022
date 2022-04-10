@@ -85,7 +85,7 @@ describe("Given I am connected as an employee", () => {
         userEvent.click(singleEye)
         expect(handleClickIconEye).toHaveBeenCalled()
 
-        // ! Works (even without calling handleClickIconEye)
+        // ! Works (even without calling handleClickIconEye (assigning mock function did seem to call It))
         // expect(screen.getAllByText('Justificatif')).toBeTruthy()
 
         // ! Same problem as above
@@ -93,9 +93,9 @@ describe("Given I am connected as an employee", () => {
         const modalText = screen.getAllByText('Justificatif')[0]
         expect(modalText).toBeVisible()
   
-        // ! Does not work
-        // await waitFor(() => screen.getByTestId('modaleFile'))
-        // const modale = screen.getByTestId('modaleFile')
+        // Other way to select modal
+        // await waitFor(() => document.querySelector('#modaleFile'))
+        // const modale = document.querySelector('#modaleFile')
         // expect(modale).toBeTruthy()
       })
     })
@@ -104,7 +104,7 @@ describe("Given I am connected as an employee", () => {
     describe("When I click on new bill button ('Nouvelle note de frais')", () => {
       test("Then It should render NewBill page", async () => {
 
-        // ! Works (even without clicking on newBillButton)
+        // ! Works (even without clicking on newBillButton (assigning mock function seems to call It))
         Object.defineProperty(window, 'localStorage', { value: localStorageMock })
         window.localStorage.setItem('user', JSON.stringify({
           type: 'Employee'
@@ -168,27 +168,29 @@ describe("Given I am a user connected as Employee", () => {
       router()
       window.onNavigate(ROUTES_PATH.Bills)
       await waitFor(() => screen.getByText("Mes notes de frais"))
-      const contentPending  = await screen.getByText("En attente (1)")
-      expect(contentPending).toBeTruthy()
-      const contentRefused  = await screen.getByText("Refusé (2)")
-      expect(contentRefused).toBeTruthy()
-      expect(screen.getByTestId("big-billed-icon")).toBeTruthy()
+      const contentType = await screen.getByText("Type")
+      expect(contentType).toBeTruthy()
+      const contentName = await screen.getByText("Nom")
+      expect(contentName).toBeTruthy()
+      const contentDate = await screen.getByText("Date")
+      expect(contentDate).toBeTruthy()
+      const contentPrice = await screen.getByText("Montant")
+      expect(contentPrice).toBeTruthy()
+      const contentState = await screen.getByText("Statut")
+      expect(contentState).toBeTruthy()
+      const contentActions = await screen.getByText("Actions")
+      expect(contentActions).toBeTruthy()
     })
   describe("When an error occurs on API", () => {
     beforeEach(() => {
       jest.spyOn(mockStore, "bills")
-      Object.defineProperty(
-          window,
-          'localStorage',
-          { value: localStorageMock }
-      )
+      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
       window.localStorage.setItem('user', JSON.stringify({
-        type: 'Admin',
-        email: "a@a"
+        type: 'Employee'
       }))
       const root = document.createElement("div")
       root.setAttribute("id", "root")
-      document.body.appendChild(root)
+      document.body.append(root)
       router()
     })
     test("fetches bills from an API and fails with 404 message error", async () => {
@@ -222,4 +224,5 @@ describe("Given I am a user connected as Employee", () => {
   })
 
   })
-}) */
+})
+*/
