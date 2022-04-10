@@ -105,4 +105,33 @@ describe("Given I am connected as an employee", () => {
       expect(window.alert).toBeCalledWith('Format du justificatif non valide. Veuillez choisir un fichier au format jpg, jpeg ou png.')
     })
   })
+  describe("When I am on NewBill Page, fill the required fields and add a file with a valid extension", () => {
+    test("Then the bill should be saved and I should be redirected to bills page", async () => {
+
+      // Set page
+      jest.spyOn(window, 'alert').mockImplementation(() => {});
+      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+      window.localStorage.setItem('user', JSON.stringify({
+        type: 'Employee'
+      }))
+      const root = document.createElement("div")
+      root.setAttribute("id", "root")
+      document.body.append(root)
+      router()
+      window.onNavigate(ROUTES_PATH.NewBill)
+      await waitFor(() => screen.getByTestId('file'))
+      const fileInput = screen.getByTestId('file')
+      expect(fileInput).toBeTruthy()
+
+      // Submit form
+      const submitButton = document.querySelector('button[type="submit"]')
+      fireEvent.click(submitButton);
+
+      // Redirect to bills page
+      // ! Needs to check this.onNavigate(ROUTES_PATH['Bills'])
+      await waitFor(() => screen.getByTestId('icon-mail'))
+      const mailIcon = screen.getByTestId('icon-mail')
+      expect(mailIcon.classList.contains('active-icon')).toBe(true)
+    })
+  })
 })
