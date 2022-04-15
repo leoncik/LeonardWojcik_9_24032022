@@ -11,6 +11,7 @@ import {localStorageMock} from "../__mocks__/localStorage.js";
 import Actions from "../views/Actions.js"
 import Bills from "../containers/Bills.js";
 import mockStore from "../__mocks__/store";
+import { formatDate } from "../app/format.js"
 
 jest.mock("../app/Store", () => mockStore)
 
@@ -41,38 +42,39 @@ describe("Given I am connected as an employee", () => {
     })
 
     test("Then bills should be ordered from earliest to latest", () => {
+
+      // Set page
       document.body.innerHTML = BillsUI({ data: bills })
-      const dates = screen.getAllByText(/^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/i).map(a => a.innerHTML)
-      const antiChrono = (a, b) => ((a < b) ? 1 : -1)
-      const datesSorted = [...dates].sort(antiChrono)
-      expect(dates).toEqual(datesSorted)
+
+      // Retrieve dates from mocked bills, sort them and format them
+      let mockedDates = bills.map(elt => elt.date)
+      mockedDates.sort((a, b) => {
+        const dateA = new Date(a.date)
+        const dateB = new Date(b.date)
+        return dateB - dateA
+      })
+      mockedDates = mockedDates.map(elt => formatDate(elt))
+      
+      // Retrieve dates from DOM (should already be sorted and formatted) and compare them with mocked dates
+      const dates = screen.getAllByText(/^\b([1-9]|[12][0-9]|3[01]) (Jan|Fév|Mar|Avr|Mai|Jui|Aoû|Sep|Oct|Nov|Déc)(\. )([0-9][0-9])$\b/).map(a => a.innerHTML)
+      expect(dates).toEqual(mockedDates)
     })
 
-    // ! These tests looks mostly covered (by the GET tests)
     describe("Bills data is not corrupted", () => {
       test("Then bills should have their date formatted", () => {
-        // ! New test (not working)
-        // Test getBills, then test try/catch
-        const bill = new Bills({
-          document, onNavigate, store, localStorage: window.localStorage
-        })
+        // Set page
+        document.body.innerHTML = BillsUI({ data: bills })
 
-        // const getBills = jest.fn(bill.getBills())
-        // const bills = getBills
-        // expect(getBills).toHaveBeenCalled()
-
-        // ! Old test
-        // document.body.innerHTML = BillsUI({ data: bills })
-        // const dates = screen.getAllByText(/^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/i).map(a => a.innerHTML)
-        // expect(dates).toEqual(bills.map(bill => bill.date.toLocaleDateString('fr-FR')))
+        // Retrieve dates from DOM (should already be sorted and formatted) and compare them with mocked dates
+        const dates = screen.getAllByText(/^\b([1-9]|[12][0-9]|3[01]) (Jan|Fév|Mar|Avr|Mai|Jui|Aoû|Sep|Oct|Nov|Déc)(\. )([0-9][0-9])$\b/).map(a => a.innerHTML)
+        expect(dates).toEqual(bills.map(elt => formatDate(elt.date)))
         })
     })
     describe("Bills data is corrupted", () => {
       test("Then bills should have their date unformatted", () => {
-        // ! Old test
-        // document.body.innerHTML = BillsUI({ data: bills })
-        // const dates = screen.getAllByText(/^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/i).map(a => a.innerHTML)
-        // expect(dates).toEqual(bills.map(bill => bill.date))
+        let corruptedDates = ['003 Février 2004', '11 Aavril 1999', '42 Décembre 2020']
+        corruptedDates = formatDate(corruptedDates)
+        console.log(corruptedDates);
       })
     })
 
@@ -80,6 +82,8 @@ describe("Given I am connected as an employee", () => {
     describe("There are bills and when I click on eye icon", () => {
       test("Then a modal should open ", async () => {
         // ! New test
+        // TODO : add eye icons with Actions() ?
+
         // ! Init page method 1 (does not cover this.handleClickIconEye(icon)))
         // Object.defineProperty(window, 'localStorage', { value: localStorageMock })
         // window.localStorage.setItem('user', JSON.stringify({
@@ -126,9 +130,9 @@ describe("Given I am connected as an employee", () => {
         expect(modalText).toBeVisible()
   
         // Other way to select modal
-        // await waitFor(() => document.querySelector('#modaleFile'))
-        // const modale = document.querySelector('#modaleFile')
-        // expect(modale).toBeTruthy()
+        // await waitFor(() => screen.getByTestId('modaleFile'))
+        // const modale = screen.getByTestId('modaleFile')
+        // expect(modale).toBeVisible()
       })
     })
 
@@ -137,6 +141,7 @@ describe("Given I am connected as an employee", () => {
       test("Then It should render NewBill page", async () => {
 
         // ! Works (even without clicking on newBillButton (assigning mock function seems to call It))
+        // ! Bon là c'est à cause du "scope", faut que je reset le mock je crois
         Object.defineProperty(window, 'localStorage', { value: localStorageMock })
         window.localStorage.setItem('user', JSON.stringify({
           type: 'Employee'

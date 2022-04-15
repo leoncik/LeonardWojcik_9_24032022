@@ -109,6 +109,7 @@ describe("Given I am connected as an employee", () => {
     test("Then the bill should be saved and I should be redirected to bills page", async () => {
 
       // Set page
+      // TODO : set in beforeeach
       jest.spyOn(window, 'alert').mockImplementation(() => {});
       Object.defineProperty(window, 'localStorage', { value: localStorageMock })
       window.localStorage.setItem('user', JSON.stringify({
