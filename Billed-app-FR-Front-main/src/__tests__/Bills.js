@@ -8,24 +8,21 @@ import BillsUI from "../views/BillsUI.js"
 import { bills } from "../fixtures/bills.js"
 import { ROUTES_PATH} from "../constants/routes.js";
 import {localStorageMock} from "../__mocks__/localStorage.js";
-import Actions from "../views/Actions.js"
 import Bills from "../containers/Bills.js";
 import mockStore from "../__mocks__/store";
 import { formatDate } from "../app/format.js"
-
-jest.mock("../app/Store", () => mockStore)
-
 import router from "../app/Router.js";
-import NewBillUI from "../views/NewBillUI.js";
-import store from "../__mocks__/store.js"
 
 // Necessary for toBeVisible method
 import '@testing-library/jest-dom/extend-expect'
+
+jest.mock("../app/Store", () => mockStore)
 
 describe("Given I am connected as an employee", () => {
   describe("When I am on Bills Page", () => {
     test("Then bill icon in vertical layout should be highlighted", async () => {
 
+      // Set page
       Object.defineProperty(window, 'localStorage', { value: localStorageMock })
       window.localStorage.setItem('user', JSON.stringify({
         type: 'Employee'
@@ -35,6 +32,8 @@ describe("Given I am connected as an employee", () => {
       document.body.append(root)
       router()
       window.onNavigate(ROUTES_PATH.Bills)
+
+      // Check if bill icon is highlighted
       await waitFor(() => screen.getByTestId('icon-window'))
       const windowIcon = screen.getByTestId('icon-window')
       expect(windowIcon.classList.contains('active-icon')).toBe(true)
@@ -62,8 +61,6 @@ describe("Given I am connected as an employee", () => {
 
     describe("Bills data is not corrupted", () => {
       test("Then bills should have their date formatted", () => {
-        // Set page
-        document.body.innerHTML = BillsUI({ data: bills })
 
         // Retrieve dates from DOM (should already be sorted and formatted) and compare them with mocked dates
         const dates = screen.getAllByText(/^\b([1-9]|[12][0-9]|3[01]) (Jan|Fév|Mar|Avr|Mai|Jui|Aoû|Sep|Oct|Nov|Déc)(\. )([0-9][0-9])$\b/).map(a => a.innerHTML)
@@ -74,74 +71,48 @@ describe("Given I am connected as an employee", () => {
       test("Then bills should have their date unformatted", () => {
         let corruptedDates = ['003 Février 2004', '11 Aavril 1999', '42 Décembre 2020']
         corruptedDates = formatDate(corruptedDates)
-        console.log(corruptedDates);
+        expect(corruptedDates).toEqual(['003 Février 2004', '11 Aavril 1999', '42 Décembre 2020'])
       })
     })
 
 
     describe("There are bills and when I click on eye icon", () => {
       test("Then a modal should open ", async () => {
-        // ! New test
-        // TODO : add eye icons with Actions() ?
 
-        // ! Init page method 1 (does not cover this.handleClickIconEye(icon)))
-        // Object.defineProperty(window, 'localStorage', { value: localStorageMock })
-        // window.localStorage.setItem('user', JSON.stringify({
-        //   type: 'Employee'
-        // }))
-        // const onNavigate = (pathname) => {
-        //   document.body.innerHTML = ROUTES({ pathname })
-        // }
-        // const store = null
-        // const bill = new Bills({
-        //   document, onNavigate, store, localStorage: window.localStorage
-        // })
-        // document.body.innerHTML = BillsUI({ data: bills })
-
-        // ! Init page method 2 (covers this.handleClickIconEye(icon)))
-        Object.defineProperty(window, 'localStorage', { value: localStorageMock })
-        window.localStorage.setItem('user', JSON.stringify({
-          type: 'Employee'
-        }))
-        const root = document.createElement("div")
-        root.setAttribute("id", "root")
-        document.body.append(root)
-        router()
-        window.onNavigate(ROUTES_PATH.Bills)
+        // Init Bill
         const store = null
         const bill = new Bills({
           document, onNavigate, store, localStorage: window.localStorage
         })
 
+        // Click on eye icon
         const eye = screen.getAllByTestId('icon-eye')
         const singleEye = eye[0]
         $.fn.modal = jest.fn()
         const handleClickIconEye = jest.fn(bill.handleClickIconEye(singleEye))
         singleEye.addEventListener('click', handleClickIconEye)
         userEvent.click(singleEye)
+
+        // Check if modal is open
         expect(handleClickIconEye).toHaveBeenCalled()
+  
+        await waitFor(() => screen.getByTestId('modaleFile'))
+        const modale = screen.getByTestId('modaleFile')
+        expect(modale).toBeVisible()
 
-        // ! Works (even without calling handleClickIconEye (assigning mock function did seem to call It))
-        // expect(screen.getAllByText('Justificatif')).toBeTruthy()
-
-        // ! Same problem as above
         await waitFor(() => screen.getAllByText('Justificatif'))
         const modalText = screen.getAllByText('Justificatif')[0]
         expect(modalText).toBeVisible()
-  
-        // Other way to select modal
-        // await waitFor(() => screen.getByTestId('modaleFile'))
-        // const modale = screen.getByTestId('modaleFile')
-        // expect(modale).toBeVisible()
       })
     })
 
     
     describe("When I click on new bill button ('Nouvelle note de frais')", () => {
       test("Then It should render NewBill page", async () => {
+        // Reset DOM from previous tests
+        document.body.innerHTML = ''
 
-        // ! Works (even without clicking on newBillButton (assigning mock function seems to call It))
-        // ! Bon là c'est à cause du "scope", faut que je reset le mock je crois
+        // Set page
         Object.defineProperty(window, 'localStorage', { value: localStorageMock })
         window.localStorage.setItem('user', JSON.stringify({
           type: 'Employee'
@@ -156,38 +127,16 @@ describe("Given I am connected as an employee", () => {
           document, onNavigate, store, localStorage: window.localStorage
         })
 
+        // Click on new bill button
         const handleClickNewBill = jest.fn(bill.handleClickNewBill())
         await waitFor(() => screen.getByTestId('btn-new-bill'))
         const newBillButton = screen.getByTestId("btn-new-bill");
         expect(newBillButton).toBeTruthy()
         fireEvent.click(newBillButton);
         
+        // Check if new bill page is rendered
         expect(handleClickNewBill).toHaveBeenCalled
         expect(screen.getAllByText('Envoyer une note de frais')).toBeTruthy()
-
-
-        // ! Old test (not working)
-        // const onNavigate = (pathname) => {
-        //   document.body.innerHTML = ROUTES({ pathname })
-        // }
-        // Object.defineProperty(window, 'localStorage', { value: localStorageMock })
-        // window.localStorage.setItem('user', JSON.stringify({
-        //   type: 'Employee'
-        // }))
-        // const store = null
-        // const bill = new Bills({
-        //   document, onNavigate, store, localStorage: window.localStorage
-        // })
-  
-        // document.body.innerHTML = BillsUI({ data: bills })
-        // await waitFor(() => screen.getByTestId('btn-new-bill'))
-        // const newBillButton = screen.getByTestId("btn-new-bill");
-        // expect(newBillButton).toBeTruthy()
-        // fireEvent.click(newBillButton);
-        
-        // failing, ROUTER is not defined
-        // expect(bill.handleClickNewBill()).toHaveBeenCalled
-        // expect(screen.getAllByText('Envoyer une note de frais')).toBeTruthy()
       })
     }) 
   })
@@ -197,30 +146,38 @@ describe("Given I am connected as an employee", () => {
 describe("Given I am a user connected as Employee", () => {
   describe("When I navigate to Bills Page", () => {
     test("fetches bills from mock API GET", async () => {
+      // Reset DOM from previous tests
+      document.body.innerHTML = ''
+
+      // Set page
       localStorage.setItem("user", JSON.stringify({ type: "Employee", email: "a@a" }));
       const root = document.createElement("div")
       root.setAttribute("id", "root")
       document.body.append(root)
       router()
       window.onNavigate(ROUTES_PATH.Bills)
+
+      // Check page content
       await waitFor(() => screen.getByText("Mes notes de frais"))
       const contentType = await screen.getByText("Type")
       expect(contentType).toBeTruthy()
-      // ! Elements seems duplicated
-      // const contentName = await screen.getByText("Nom")
-      // expect(contentName).toBeTruthy()
-      // const contentDate = await screen.getByText("Date")
-      // expect(contentDate).toBeTruthy()
-      // const contentPrice = await screen.getByText("Montant")
-      // expect(contentPrice).toBeTruthy()
-      // const contentState = await screen.getByText("Statut")
-      // expect(contentState).toBeTruthy()
-      // const contentActions = await screen.getByText("Actions")
-      // expect(contentActions).toBeTruthy()
-      // ! Console error too long
-      // await waitFor(() => screen.getByTestId("tbody"))
-      // const currentBills = screen.getByTestId("tbody")
-      // expect 4 children for currentBills
+      const contentName = await screen.getByText("Nom")
+      expect(contentName).toBeTruthy()
+      const contentDate = await screen.getByText("Date")
+      expect(contentDate).toBeTruthy()
+      const contentPrice = await screen.getByText("Montant")
+      expect(contentPrice).toBeTruthy()
+      const contentState = await screen.getByText("Statut")
+      expect(contentState).toBeTruthy()
+      const contentActions = await screen.getByText("Actions")
+      expect(contentActions).toBeTruthy()
+
+      // Check if all bills are fetched
+      await waitFor(() => screen.getByTestId("tbody"))
+      const currentBillsContainer = screen.getByTestId("tbody")
+      const currentBills = currentBillsContainer.querySelectorAll("tr")
+      // 4 is the number of bills in the mock store
+      expect(currentBills.length).toBe(4)
     })
   describe("When an error occurs on API", () => {
     beforeEach(() => {
