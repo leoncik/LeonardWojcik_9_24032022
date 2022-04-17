@@ -132,10 +132,11 @@ describe("Given I am connected as an employee", () => {
         await waitFor(() => screen.getByTestId('btn-new-bill'))
         const newBillButton = screen.getByTestId("btn-new-bill");
         expect(newBillButton).toBeTruthy()
+        newBillButton.addEventListener('click', handleClickNewBill)
         fireEvent.click(newBillButton);
         
         // Check if new bill page is rendered
-        expect(handleClickNewBill).toHaveBeenCalled
+        expect(handleClickNewBill).toHaveBeenCalled()
         expect(screen.getAllByText('Envoyer une note de frais')).toBeTruthy()
       })
     }) 
