@@ -60,7 +60,6 @@ describe("When I am on NewBill Page and add a file", () => {
     const handleChangeFile = jest.fn(newBill.handleChangeFile(e))
     fireEvent.click(fileInput);
     expect(handleChangeFile).toHaveBeenCalled
-    // ? add statement : expect added file name to match input value
   })
 })
 
@@ -108,21 +107,41 @@ describe("Given I am connected as an employee", () => {
       // expect(labelFile.files.item(0)).toBe(file)
       // expect(labelFile.files).toHaveLength(1)
       // ! Method 2. Lower coverage but more accurate
+      // Object.defineProperty(fileInput, 'value', {
+      //   value: 'chucknorris.png',
+      //   writable: false,
+      // });
+      // ! Method 3. Combines method 1 and 2
+      const newBill = new NewBill({
+        document, onNavigate, store, localStorage: window.localStorage
+      })
+  
+      const e = {
+        preventDefault: jest.fn(),
+        target : fileInput
+      };
+      const handleChangeFile = jest.fn(newBill.handleChangeFile(e))
+      fileInput.addEventListener('change', handleChangeFile)
       Object.defineProperty(fileInput, 'value', {
-        value: 'chucknorris.png',
-        writable: false,
+        value: 'chucknorris.webp',
+        writable: true,
       });
+      expect(handleChangeFile).toHaveBeenCalled
+
 
       // Submit form
       const submitButton = document.querySelector('button[type="submit"]')
       fireEvent.click(submitButton);
 
-      // ! Temporarily add "not" to test with a valid format first. 
-      expect(window.alert).not.toBeCalledWith('Format du justificatif non valide. Veuillez choisir un fichier au format jpg, jpeg ou png.')
+      expect(window.alert).toBeCalledWith('Format du justificatif non valide. Veuillez choisir un fichier au format jpg, jpeg ou png.')
     })
   })
   describe("When I am on NewBill Page, fill the required fields and add a file with a valid extension", () => {
-    test("Then the bill should be saved and I should be redirected to bills page", async () => {
+    test("Then the bill should be saved", async () => {
+
+      // Clear all mocks and reset page
+      jest.clearAllMocks()
+      document.body.innerHTML = ''
 
       // Define fetch
       global.fetch = jest.fn(() => Promise.resolve({
@@ -142,19 +161,17 @@ describe("Given I am connected as an employee", () => {
       window.onNavigate(ROUTES_PATH.NewBill)
       document.body.innerHTML = NewBillUI();
       const inputData = {
-        id: "47qAXb6fIm2zOKkLzMro",
-        vat: "80",
-        fileUrl: "https://test.storage.tld/v0/b/billable-677b6.a…f-1.jpg?alt=media&token=c1640e12-a24b-4b11-ae52-529112e9602a",
+        vat: 80,
+        fileUrl: 'chucknorris.png',
         status: "pending",
         type: "Hôtel et logement",
         commentary: "séminaire billed",
         name: "encore",
-        fileName: "preview-facture-free-201801-pdf-1.jpg",
+        fileName: null,
         date: "2004-04-04",
-        amount: "400",
-        commentAdmin: "ok",
-        email: "a@a",
-        pct: "20"
+        amount: 400,
+        email: undefined,
+        pct: 20
       };
 
       // Fill required fields
@@ -168,22 +185,30 @@ describe("Given I am connected as an employee", () => {
 
       const amount = screen.getByTestId('amount')
       fireEvent.change(amount, { target: { value: inputData.amount } })
-      expect(amount.value).toBe(inputData.amount)
+      expect(amount.value).toBe(inputData.amount.toString())
 
       const pct = screen.getByTestId('pct')
       fireEvent.change(pct, { target: { value: inputData.pct } })
-      expect(pct.value).toBe(inputData.pct)
+      expect(pct.value).toBe(inputData.pct.toString())
 
       const fileInput = screen.getByTestId('file')
       Object.defineProperty(fileInput, 'value', {
         value: 'chucknorris.png',
-        writable: false,
+        writable: true,
       });
 
-      // ? Fill optional fields
+      // Fill optional fields
       const vat = screen.getByTestId('vat')
       fireEvent.change(vat, { target: { value: inputData.vat } })
-      expect(vat.value).toBe(inputData.vat)
+      expect(vat.value).toBe(inputData.vat.toString())
+
+      const commentary = screen.getByTestId('commentary')
+      fireEvent.change(commentary, { target: { value: inputData.commentary } })
+      expect(commentary.value).toBe(inputData.commentary)
+
+      const expenseName = screen.getByTestId('expense-name')
+      fireEvent.change(expenseName, { target: { value: inputData.name } })
+      expect(expenseName.value).toBe(inputData.name)
 
       const formNewBill = screen.getByTestId('form-new-bill')
 
@@ -196,30 +221,11 @@ describe("Given I am connected as an employee", () => {
         writable: true,
       });
 
-      // Login example
-      // we have to mock navigation to test it
-      // const onNavigate = (pathname) => {
-      //   document.body.innerHTML = ROUTES({ pathname });
-      // };
-
-      // Login example
-      // let PREVIOUS_LOCATION = "";
-
-      // Login example
-      // const store = jest.fn();
-
-      // Login example
-      // const login = new Login({
-      //   document,
-      //   localStorage: window.localStorage,
-      //   onNavigate,
-      //   PREVIOUS_LOCATION,
-      //   store,
-      // });
       const newBill = new NewBill({
         document, onNavigate, store, localStorage: window.localStorage
       })
 
+      // Submit data
       const handleSubmit = jest.fn(newBill.handleSubmit)
       newBill.updateBill = jest.fn().mockResolvedValue({})
       formNewBill.addEventListener("submit", handleSubmit);
@@ -227,55 +233,21 @@ describe("Given I am connected as an employee", () => {
       expect(handleSubmit).toHaveBeenCalled()
       expect(window.alert).not.toBeCalledWith('Format du justificatif non valide. Veuillez choisir un fichier au format jpg, jpeg ou png.')
 
-      // ? Check and compare data send with POST
-      // expect(newBill.updateBill).toHaveBeenCalledWith({
-      //   id: inputData.id,
-      //   vat: inputData.vat,
-      //   fileUrl: inputData.fileUrl,
-      //   status: inputData.status,
-      //   type: inputData.type,
-      //   commentary: inputData.commentary,
-      //   name: inputData.name,
-      //   fileName: inputData.fileName,
-      //   date: inputData.date,
-      //   amount: inputData.amount,
-      //   commentAdmin: inputData.commentAdmin,
-      //   email: inputData.email,
-      //   pct: inputData.pct
-      // })
+      // Check and compare data send with POST
+      expect(newBill.updateBill).toHaveBeenCalledWith({
+        vat: inputData.vat.toString(),
+        fileUrl: inputData.fileUrl,
+        status: inputData.status,
+        type: inputData.type,
+        commentary: inputData.commentary,
+        name: inputData.name,
+        fileName: inputData.fileName,
+        date: inputData.date,
+        amount: inputData.amount,
+        email: inputData.email,
+        pct: inputData.pct
+      })
 
-      // Check that user is redirected to bills page
-      // await waitFor(() => screen.getByTestId('icon-mail'))
-      // const mailIcon = screen.getByTestId('icon-mail')
-      // expect(mailIcon.classList.contains('active-icon')).toBe(true)
-
-      // old test
-      // const onSubmitSpy = jest.fn();
-      // expect(onSubmitSpy).toHaveBeenCalledWith({
-      //   type: 'Transports',
-      //   date: '2020-01-01',
-      //   amount: 100,
-      //   pct: 10,
-      //   fileName: 'myFile.jpg'
-      // })
-      // Expect data send with post to be equal to mockedBill
-
-      // Login example
-      // const handleSubmit = jest.fn(login.handleSubmitEmployee);
-      // login.login = jest.fn().mockResolvedValue({});
-      // formNewBill.addEventListener("submit", handleSubmit);
-      // fireEvent.submit(formNewBill);
-      // expect(handleSubmit).toHaveBeenCalled();
-      // expect(window.localStorage.setItem).toHaveBeenCalled();
-      // expect(window.localStorage.setItem).toHaveBeenCalledWith(
-      //   "user",
-      //   JSON.stringify({
-      //     type: "Employee",
-      //     email: inputData.email,
-      //     password: inputData.password,
-      //     status: "connected",
-      //   })
-      // );
     })
   })
 })
