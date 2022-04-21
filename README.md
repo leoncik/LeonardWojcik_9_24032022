@@ -29,11 +29,15 @@ I have also fixed some visual bugs that I have noticed (set the lateral menu bar
 
 Here is the coverage report for the tests (currently 94.69% of the code is covered) :
 
+![billed-global-coverage](https://user-images.githubusercontent.com/85347446/164513484-35a64db8-68a4-4954-9ce0-31d831090be1.png)
+
 #### 3) Write an End-to-End test for the employee's path.
 
 You can read It in French or in English :
-    - [Billed-E2E-parcours-employé]()
-    - [Billed-E2E-employee-path]()
+
+- [Billed-E2E-parcours-employé](https://github.com/leoncik/LeonardWojcik_9_24032022/files/8532924/Billed-E2E-employee.pdf)
+
+- [Billed-E2E-employee-path](https://github.com/leoncik/LeonardWojcik_9_24032022/files/8532933/Billed-E2E-employee-EN.pdf)
 
 ### How to use
 
