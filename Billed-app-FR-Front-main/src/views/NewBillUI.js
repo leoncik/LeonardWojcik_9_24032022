@@ -51,7 +51,7 @@ export default () => {
                       </div>
                     </div>
                     <div class="flex-col">
-                      <label for="pct" class="bold-label">%</label>
+                      <label for="pct" class="bold-label">Taux</label>
                       <div class="d-flex align-items-center">
                         <input id="pct" required type="number" min="0" max="100" class="form-control blue-border" data-testid="pct" placeholder="20" />
                         <span class="newbill-form-icon"> ${pctIcon} </span>

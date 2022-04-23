@@ -52,7 +52,7 @@ You can read It in French or in English :
     - Make sure that [live-server](https://www.npmjs.com/package/live-server) is installed on your machine (run : `npm install -g live-server` to install It).
     - Run `live-server`.
 
-3) Navigate in the APP :
+3) Navigate in the App :
     - In order to access the Bills page for employees, you need to be logged in. Here are the id and password :
         ```
         id : employee@test.tld

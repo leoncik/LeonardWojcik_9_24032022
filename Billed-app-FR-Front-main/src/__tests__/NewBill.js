@@ -8,6 +8,7 @@ import {localStorageMock} from "../__mocks__/localStorage.js"
 import { ROUTES_PATH} from "../constants/routes.js"
 import NewBillUI from "../views/NewBillUI.js"
 import NewBill from "../containers/NewBill.js"
+import { errorFileMessage } from "../__mocks__/errorMessages.js"
 
 import router from "../app/Router.js"
 import store from "../__mocks__/store.js"
@@ -74,7 +75,6 @@ describe("Given I am connected as an employee", () => {
       }));
 
       // Set page
-      // Todo : set in beforeEach ?
       jest.spyOn(window, 'alert').mockImplementation(() => {});
       Object.defineProperty(window, 'localStorage', { value: localStorageMock })
       window.localStorage.setItem('user', JSON.stringify({
@@ -90,32 +90,9 @@ describe("Given I am connected as an employee", () => {
       expect(fileInput).toBeTruthy()
 
       // Changing file extension to unsupported extension
-      // ! Method 1. Covers NewBill to 100% (catch error of handlechangefile)
-      // const newBill = new NewBill({
-      //   document, onNavigate, store, localStorage: window.localStorage
-      // })
-      // const e = {
-      //   preventDefault: jest.fn(),
-      //   target: { value: 'chucknorris.png' }
-      // };
-      // const handleChangeFile = jest.fn(newBill.handleChangeFile(e))
-      // fileInput.addEventListener('change', handleChangeFile)
-      // const file = new File(['chucknorris'], 'chucknorris.png', {type: 'image/png'})
-      // const labelFile = screen.getByLabelText(/Justificatif/)
-      // await userEvent.upload(labelFile, file)
-      // expect(labelFile.files[0]).toBe(file)
-      // expect(labelFile.files.item(0)).toBe(file)
-      // expect(labelFile.files).toHaveLength(1)
-      // ! Method 2. Lower coverage but more accurate
-      // Object.defineProperty(fileInput, 'value', {
-      //   value: 'chucknorris.png',
-      //   writable: false,
-      // });
-      // ! Method 3. Combines method 1 and 2
       const newBill = new NewBill({
         document, onNavigate, store, localStorage: window.localStorage
       })
-  
       const e = {
         preventDefault: jest.fn(),
         target : fileInput
@@ -133,7 +110,7 @@ describe("Given I am connected as an employee", () => {
       const submitButton = document.querySelector('button[type="submit"]')
       fireEvent.click(submitButton);
 
-      expect(window.alert).toBeCalledWith('Format du justificatif non valide. Veuillez choisir un fichier au format jpg, jpeg ou png.')
+      expect(window.alert).toBeCalledWith(errorFileMessage)
     })
   })
   describe("When I am on NewBill Page, fill the required fields and add a file with a valid extension", () => {
@@ -212,15 +189,6 @@ describe("Given I am connected as an employee", () => {
 
       const formNewBill = screen.getByTestId('form-new-bill')
 
-      // localStorage should be populated with formNewBill data
-      Object.defineProperty(window, "localStorage", {
-        value: {
-          getItem: jest.fn(() => null),
-          setItem: jest.fn(() => null),
-        },
-        writable: true,
-      });
-
       const newBill = new NewBill({
         document, onNavigate, store, localStorage: window.localStorage
       })
@@ -231,7 +199,7 @@ describe("Given I am connected as an employee", () => {
       formNewBill.addEventListener("submit", handleSubmit);
       fireEvent.submit(formNewBill);
       expect(handleSubmit).toHaveBeenCalled()
-      expect(window.alert).not.toBeCalledWith('Format du justificatif non valide. Veuillez choisir un fichier au format jpg, jpeg ou png.')
+      expect(window.alert).not.toBeCalledWith(errorFileMessage)
 
       // Check and compare data send with POST
       expect(newBill.updateBill).toHaveBeenCalledWith({
